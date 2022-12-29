@@ -1,0 +1,12 @@
+INFO - 30-Dec-22 01:06:28 - Admin Simon first time setup
+INFO - 30-Dec-22 01:06:36 - Cashier James recorded
+INFO - 30-Dec-22 01:06:51 - Admin Simon logged in
+INFO - 30-Dec-22 01:07:43 - Cashier James logged in
+INFO - 30-Dec-22 01:07:54 - Cashier wants to return goods with prod id: w3e4
+INFO - 30-Dec-22 01:08:15 - Name mismatch for: James
+WARNING - 30-Dec-22 01:08:36 - Wrong pin entered by Simon
+WARNING - 30-Dec-22 01:09:27 - Name mismatch by: Jombo
+INFO - 30-Dec-22 01:09:55 - Cashier James logged in
+INFO - 30-Dec-22 01:10:15 - Cashier wants to return goods with prod id: q34r
+INFO - 30-Dec-22 01:10:38 - Customer mikal interacts with system.
+WARNING - 30-Dec-22 01:13:09 - Wrong pin entered by: James
