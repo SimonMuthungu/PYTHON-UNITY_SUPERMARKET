@@ -4,6 +4,7 @@ import datetime
 import ast
 import mysql.connector as con
 import secrets
+import logging # to keep log files for events
 
 
 # Checks time to know how to salute the user.
@@ -19,6 +20,10 @@ else:
 
 # Admin user...
 def Admin():
+
+    # for keeping logs of events when admin is logged in
+    logging.basicConfig(filename=r'D:\python general\supermarket_app\Unity_supermarket.log', level=logging.DEBUG, format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S') 
+
     name = input(f'Whats your first name:\n')
     try:
         with open('D:\python general\supermarket_app\Admin_file.txt') as readAdmin:
@@ -27,19 +32,24 @@ def Admin():
                 record = ast.literal_eval(line)
                 if record['name'] == name:
                     print(f'Welcome {name.capitalize()}')
-
+                    
                     code = input(f'Enter your admin secret password, {name.capitalize()}:\n')
                     if code == record['secret_pass']:
                         print(f'\nLogging you in as {name.capitalize()}... Welcome\n')
-                        # log file recording...
+
+                        # records admin login to log file
+                        logging.info(f'Admin {name.capitalize()} logged in')
+
                         return True
                     else:
                         print('Wrong pin... please be careful...')
                         # log file recording of wrong pin
+                        logging.warning(f'Wrong pin entered by {name.capitalize()}')
                         return False
                 else:
                     print('\nWe have a few admin names but yours seems not to be one of them...Please consult one of the admins to add you\n')
                     # Log of admin name mismatch 
+                    logging.info(f'Name mismatch for: {name.capitalize()}')
                     return False
     except:
         # if this program is being run for the first time
@@ -47,10 +57,11 @@ def Admin():
         admin_name = input()
         secret_pass = input('Also enter a secret passkey that you can remember easily:\n')
         admin_details = str({'name':admin_name, 'secret_pass':secret_pass})
+        logging.info(f'Admin {name.capitalize()} first time setup')
 
         with open('D:\python general\supermarket_app\Admin_file.txt', 'w') as first_admin:
             first_admin.write(admin_details + '\n') 
-        print('First admin file created') # can be logged...
+        print('First admin file created') 
     try:
     # creates also the cashier files
         with open('D:\python general\supermarket_app\Cashier_file.txt', 'w') as createCashier:
@@ -58,17 +69,22 @@ def Admin():
             cashier_pass = input(f'\nSetup a password for {cashier_name.capitalize()} to access the system')
             cashier_details = str({'name':cashier_name, 'secret_pass':cashier_pass})
             createCashier.write(cashier_details + '\n')
+            logging.info(f'Cashier {name.capitalize()} recorded')
     except:
         with open('D:\python general\supermarket_app\Cashier_file.txt', 'w') as createCashier:
             cashier_name = input('Enter the name of one cashier to start with...:\n')
             cashier_pass = input(f'\nSetup a password for {cashier_name.capitalize()} to access the system:\n')
             cashier_details = str({'name':cashier_name, 'secret_pass':cashier_pass})
             createCashier.write(cashier_details + '\n') 
+            logging.info(f'Cashier {name.capitalize()} recorded')
 
 
 
 # Cashier
 def Cashier():
+
+    logging.basicConfig(filename=r'D:\python general\supermarket_app\Unity_supermarket.log',level=logging.DEBUG, format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+
     name = input(f'Whats your first name:\n')
     with open('D:\python general\supermarket_app\Cashier_file.txt') as readCashier:
         for line in readCashier.readlines():
@@ -80,20 +96,35 @@ def Cashier():
                 code = input(f'Enter your cashier secret password, {name.capitalize()}:\n')
                 if code == record['secret_pass']:
                     print(f'\nLogged in as {name.capitalize()}... Welcome\n')
+
                     # log file recording...
+                    logging.info(f'Cashier {name.capitalize()} logged in')
+
                     return True
                 else:
-                    print('Wrong access passwrod, please be careful...')
+                    print('Wrong access password, please be careful...')
+
                     # log file recording of wrong pin
+                    logging.warning(f'Wrong pin entered by: {name.capitalize()}')
+
                     return False
             else:
-                print('\nYour name seems not to be in our records...\n') 
+                print('\nYour name seems not to be in our records...\n')
+
                 # Log of admin name mismatch 
+                logging.warning(f'Name mismatch by: {name.capitalize()}')
                 return False
 
 def Customer():
+
+    logging.basicConfig(filename=r'D:\python general\supermarket_app\Unity_supermarket.log',level=logging.DEBUG, format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+
     print('Welcome to Unity Supermarket... We\'ll be happy to know your name...:')
     customer_name = input()
+
+    #log
+    logging.info(f'Customer {customer_name} interacts with system.')
+
     mydb = con.connect(host='localhost', user='root', password='***** #for security', database='Unity_supermarket')
     cursor = mydb.cursor()
 
@@ -120,9 +151,11 @@ def Customer():
             products = cursor.fetchall()
             for x in products:
                 print(x)
+            logging.warning(f'Products displayed for customer {customer_name}')
 
         except:
             print('Seems the product category you choose isnt existent...')
+            logging.warning(f'Products not displayed for customer {customer_name} for some reason')
             print('The problem could also be an issue on our side with the database, do bear with us.')
 
     elif customer_event == 2:
@@ -133,6 +166,9 @@ def Customer():
             misc_description = input('Enter a brief description of what happened...')
             print('This will be looked at by our manager and we promise to get back to you.')
             customer_no = input('Please enter your number incase we have to call you')
+
+            #log file recording of misconduct
+            logging.info(f'{customer_name} reports misconduct: not option 4.')
 
             # Update and db with issue
             mydb = con.connect(host='localhost', user='root', password='***** #for security', database='Unity_supermarket')
@@ -147,6 +183,9 @@ def Customer():
             misc_employee = input('Please enter the employee name that mishandled you...')
             print('Our QA managers have been given a report of this issue. We will get back to you soonest. Thanks')
             customer_no = input('Please enter your number incase we have to call you')
+
+            # log file recording of the issue
+            logging.info(f'{customer_name} reports misconduct.')
 
             # update db with issue
             mydb = con.connect(host='localhost', user='root', password='***** #for security', database='Unity_supermarket')
@@ -164,6 +203,8 @@ def Customer():
         # checks sales files to ascertain whether there was this purchase
         receipt_no = input('Please enter the receipt number:\n')
 
+        logging.info(f'{customer_name} wants a return of (a) product(s)')
+
         # checks transaction details from the table sales in the db
         mydb = con.connect(host='localhost', user='root', password='***** #for security', database='Unity_supermarket')
         cursor = mydb.cursor() 
@@ -180,12 +221,16 @@ def Customer():
         
     else: 
         print('Invalid selection, was nice having you...')
+        logging.warning(f'{customer_name} makes an invalid selection')
     return 
 
     
 
 #checks to know who the user is, logs them in and records in the log files!
 who_r_you = int(input(f'\nGood {salutation}, Who are you?:\n1-Admin\n2-Cashier\n3-Customer\n\nSelect number: '))
+
+# log files
+logging.basicConfig(filename=r'D:\python general\supermarket_app\Unity_supermarket.log', level=logging.DEBUG, format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 if who_r_you == 1:
     # Admin()
@@ -212,18 +257,24 @@ if who_r_you == 1:
             try:
                 cursor.execute(query, val)
                 mydb.commit()
+                logging.info(f'Admin enters products {prod_name} to database')
+
             except:
                 print("\n!!!\nfor some reason, we cannot connect to the database, check the connection or contact simon for help.")
+                logging.error(f'Failure to connect to db for product entry')
 
         elif admin_event == 2:
+
             #update cashier files and db
             new_cashier = input('Enter the name of the cashier you  want to add:\n')
             new_cashier_pass = int(input(f'Give {new_cashier} a secret passcode:\n'))
+
             # writing cashier details to file
             with open('D:\python general\supermarket_app\Cashier_file.txt', 'a') as addCashier:
                 time = datetime.datetime.now()
                 details = str({'name': new_cashier, 'secret_pass': new_cashier_pass, 'added':time.strftime('%x')})
                 addCashier.write(details)
+                logging.info(f'Admin creates new cashier and details recorded in cashier file')
                 # Then write to db
                 # for connection to the database
             mydb = con.connect(host='localhost', user='root', password='***** #for security', database='Unity_supermarket')
@@ -236,10 +287,15 @@ if who_r_you == 1:
             try:
                 cursor.execute(query, val)
                 mydb.commit()
+                logging.info(f'Cashier details successfuly added to database')
             except:
                 print("\n!!!\nfor some reason, we cannot connect to the database, check the connection or contact simon for help.")
+                logging.error(f'For some reason, cashier couldnt be entered to the database.')
 
         elif admin_event == 3:
+            # log file
+            logging.info(f'Admin wants to check sales summary')
+
             #check sales summary from db or sales files
             mydb = con.connect(host='localhost', user='root', password='***** #for security', database='Unity_supermarket')
             cursor = mydb.cursor()
@@ -249,8 +305,11 @@ if who_r_you == 1:
             sales = cursor.fetchall()
             for sale in sales:
                 print(sale)
+            logging.info(f'Admin has checked sales summary')
 
         elif admin_event == 4:
+            # log files
+            logging.info(f'Admin wants to check product from db')
             # enter category to check from db
             category = input('Enter category to check:\n')
             #checks the products database and table for entered category
@@ -266,16 +325,17 @@ if who_r_you == 1:
                 print(f'These are the products in the {category} section:\n')
             for prod in prods:
                 print(prod) 
+            logging.info(f'Admin has checked products of category {category}')
 
         else:
             print('Here are the customers records at unity supermarket:')
             # prints customers details from files and possibly db
             mydb = con.connect(host='localhost', user='root', password='***** #for security', database='Unity_supermarket')
-            cursor = mydb.cursor()
+            cursor = mydb.cursor() 
 
-            #adding products to db
+            #checking customers info
             cursor.execute(f'SELECT * FROM Customers')
-            custs = cursor.fetchall()
+            custs = cursor.fetchall() 
             for cust in custs:
                 print(cust) 
 
@@ -288,6 +348,8 @@ elif who_r_you == 2:
         
         if cashier_event == 1:
             receipt_no = input('Enter the returned good\'s receipt number')
+            # logs this
+            logging.info(f'Cashier wants to return goods with prod id: {receipt_no}')
             # checks whether sale had been done and does what happens in customer return goods menu
         
         elif cashier_event == 2:
@@ -310,15 +372,18 @@ elif who_r_you == 2:
                     mydb = con.connect(host='localhost', user='root', password='***** #for security', database='Unity_supermarket')
                     cursor = mydb.cursor()
 
-                    #adding products to db
+                    #adding sales to db
                     query = f'INSERT INTO sales (receipt_id, cashier, customer, time) VALUES (%s, %s, %s, %s)'
                     val = (receipt_no, '','', datetime.datetime.now().strftime('%c'))
 
                     try:
                         cursor.execute(query, val)
                         mydb.commit()
+                        logging.info('Sales sent to database')
                     except:
                         print("\n!!!\nfor some reason, we cannot connect to the database, check the connection or contact simon for help.") 
+                        logging.error(f'Sales not added to database for some reason.')
                 
 elif who_r_you == 3:
     Customer()
+    logging.info(f'Customer has been served.')
